@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Casino Poker Trainer</title>
+  <style>
+    body {
+      background: radial-gradient(circle at center, #2c0000 0%, #000000 100%);
+      color: #ffd700;
+      font-family: 'Georgia', serif;
+      text-align: center;
+      padding: 20px;
+    }
+    h1 {
+      font-size: 48px;
+      text-shadow: 2px 2px #000;
+      margin-bottom: 20px;
+    }
+    .card {
+      display: inline-block;
+      margin: 10px;
+      padding: 20px;
+      font-size: 28px;
+      border: 2px solid #ffd700;
+      border-radius: 10px;
+      background: linear-gradient(135deg, #400000, #800000);
+      width: 70px;
+      box-shadow: 0 0 10px #ffd700;
+    }
+    button {
+      padding: 12px 24px;
+      font-size: 18px;
+      margin-top: 30px;
+      cursor: pointer;
+      background-color: #ffd700;
+      color: #2c0000;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      box-shadow: 0 0 10px #ffd700;
+    }
+    button:hover {
+      background-color: #ffcc00;
+    }
+    #evaluation {
+      margin-top: 30px;
+      font-size: 24px;
+      text-shadow: 1px 1px #000;
+    }
+  </style>
+</head>
+<body>
+  <h1>♠ Casino Poker Trainer ♣</h1>
+  <div id="hand"></div>
+  <div id="evaluation"></div>
+  <button onclick="dealHand()">🎴 Deal Hand</button>
+
+  <script>
+    const suits = ['♠', '♥', '♦', '♣'];
+    const ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+
+    function createDeck() {
+      const deck = [];
+      for (let suit of suits) {
+        for (let rank of ranks) {
+          deck.push({ rank, suit });
+        }
+      }
+      return deck;
+    }
+
+    function shuffle(deck) {
+      for (let i = deck.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [deck[i], deck[j]] = [deck[j], deck[i]];
+      }
+      return deck;
+    }
+
+    function rankValue(rank) {
+      if (rank === 'A') return 14;
+      if (rank === 'K') return 13;
+      if (rank === 'Q') return 12;
+      if (rank === 'J') return 11;
+      return parseInt(rank);
+    }
+
+    function evaluateHand(hand) {
+      const rankCounts = {};
+      const suitCounts = {};
+      const values = [];
+
+      for (let card of hand) {
+        rankCounts[card.rank] = (rankCounts[card.rank] || 0) + 1;
+        suitCounts[card.suit] = (suitCounts[card.suit] || 0) + 1;
+        values.push(rankValue(card.rank));
+      }
+
+      values.sort((a, b) => a - b);
+      const isFlush = Object.values(suitCounts).some(count => count === 5);
+      const isStraight = values.every((v, i, arr) => i === 0 || v === arr[i - 1] + 1);
+      const counts = Object.values(rankCounts).sort((a, b) => b - a);
+
+      if (isFlush && isStraight && values[4] === 14) return 'Royal Flush';
+      if (isFlush && isStraight) return 'Straight Flush';
+      if (counts[0] === 4) return 'Four of a Kind';
+      if (counts[0] === 3 && counts[1] === 2) return 'Full House';
+      if (isFlush) return 'Flush';
+      if (isStraight) return 'Straight';
+      if (counts[0] === 3) return 'Three of a Kind';
+      if (counts[0] === 2 && counts[1] === 2) return 'Two Pair';
+      if (counts[0] === 2) return 'One Pair';
+      return 'High Card';
+    }
+
+    function dealHand() {
+      const deck = shuffle(createDeck());
+      const hand = deck.slice(0, 5);
+      const handDiv = document.getElementById('hand');
+      handDiv.innerHTML = '';
+      hand.forEach(card => {
+        const cardDiv = document.createElement('div');
+        cardDiv.className = 'card';
+        cardDiv.textContent = `${card.rank}${card.suit}`;
+        handDiv.appendChild(cardDiv);
+      });
+      document.getElementById('evaluation').textContent = `🧠 Hand Evaluation: ${evaluateHand(hand)}`;
+    }
+  </script>
+</body>
+</html>
